@@ -42,7 +42,7 @@ public class ClockView extends View {
     }
 
     public ClockView(Context context, @Nullable AttributeSet attrs) {
-        this(context, null, -1);
+        this(context, attrs, -1);
     }
 
     public ClockView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
