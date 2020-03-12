@@ -230,7 +230,7 @@ public class ClockView extends View {
         //更新秒针角度
         angleSecond = angleSecond + 6;
         cuurSecond += 1;
-        if (angleSecond >= 360){
+        if (angleSecond >= 360) {
             angleSecond = 0;
             cuurSecond = 0;
             cuurMinute += 1;
@@ -239,10 +239,10 @@ public class ClockView extends View {
             cuurHour = mCalendar.get(Calendar.HOUR_OF_DAY);
             cuurMinute = mCalendar.get(Calendar.MINUTE);
             cuurSecond = mCalendar.get(Calendar.SECOND);
-            if (cuurHour >= 12){
+            if (cuurHour >= 12) {
                 cuurHour = cuurHour - 12;
                 isMorning = false;
-            }else{
+            } else {
                 isMorning = true;
             }
             angleSecond = cuurSecond * 6f;
@@ -261,8 +261,10 @@ public class ClockView extends View {
      */
     private float[] getDetailPaths(int x, int y, int outRadius, int inRadius, int angle) {
         float[] paths = new float[4];
+        //外圈起点坐标   三角函数的参数是弧度不是角度
         paths[0] = (float) (x + outRadius * Math.cos(angle * Math.PI / 180));
         paths[1] = (float) (y + outRadius * Math.sin(angle * Math.PI / 180));
+        //内圈终点坐标
         paths[2] = (float) (x + inRadius * Math.cos(angle * Math.PI / 180));
         paths[3] = (float) (y + inRadius * Math.sin(angle * Math.PI / 180));
         return paths;

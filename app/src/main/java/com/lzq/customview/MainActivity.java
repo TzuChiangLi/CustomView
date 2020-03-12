@@ -18,5 +18,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ClockView mView = findViewById(R.id.main_clock);
         Log.d(TAG, "onCreate: " + (mView == null));
+        mView.startRun();
     }
 }
