@@ -13,7 +13,7 @@ import android.view.View;
 import java.util.Calendar;
 
 /**
- * @author liziqiang@ftrend.cn
+ * @author https://www.jianshu.com/p/ad2b2b3cfdc8
  */
 
 public class ClockView extends View {
@@ -63,6 +63,44 @@ public class ClockView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        //绘制刻度
+        for (int i = 0; i < 60; i++) {
+            //五分钟整除
+            if (i % 5 == 0) {
+                //绘制刻度路径
+                float[] dialKdPaths = getDetailPaths(halfMinLength, halfMinLength, halfMinLength - 8, halfMinLength * 5 / 6, -i * 6);
+                canvas.drawLines(dialKdPaths, paintKd30);
+                //绘制刻度文字
+                float[] dialPathsStr = getDetailPaths(halfMinLength, halfMinLength, halfMinLength - 8, halfMinLength * 3 / 4, -i * 6);
+                canvas.drawText(strKedu[i / 5], dialPathsStr[2] - 16, dialPathsStr[3] + 14, paintKd30Text);
+                continue;
+            }
+            //其他具体细分刻度
+            float[] dialKdPaths = getDetailPaths(halfMinLength, halfMinLength, halfMinLength - 8, halfMinLength * 7 / 8, -i * 6);
+            canvas.drawLines(dialKdPaths, paintKdSecond);
+        }
+        //指针绘制
+        //时针绘制
+        canvas.save(); //保存之前内容
+        canvas.rotate(angleHour, halfMinLength, halfMinLength); //旋转的是画布,从而得到指针旋转的效果
+        canvas.drawLine(halfMinLength, halfMinLength, halfMinLength, halfMinLength * 3 / 4, paintHour);
+        canvas.restore(); //恢复
+        //绘制分针
+        canvas.save();
+        canvas.rotate(angleMinute, halfMinLength, halfMinLength); //旋转的是画布,从而得到指针旋转的效果
+        canvas.drawLine(halfMinLength, halfMinLength, halfMinLength, halfMinLength / 2, paintMinute);
+        paintCircleBar.setColor(Color.rgb(75, 75, 75));
+        paintCircleBar.setShadowLayer(4, 4, 8, Color.argb(70, 40, 40, 40));
+        canvas.drawCircle(halfMinLength, halfMinLength, 24, paintCircleBar);
+        canvas.restore();
+        //绘制秒针
+        canvas.save();
+        canvas.rotate(angleSecond, halfMinLength, halfMinLength); //旋转的是画布,从而得到指针旋转的效果
+        canvas.drawLine(halfMinLength, halfMinLength + 40, halfMinLength, halfMinLength / 4 - 20, paintSecond);
+        paintCircleBar.setColor(Color.rgb(178, 34, 34));
+        paintCircleBar.setShadowLayer(4, 4, 8, Color.argb(50, 80, 0, 0));
+        canvas.drawCircle(halfMinLength, halfMinLength, 12, paintCircleBar);
+        canvas.restore();
     }
 
 
@@ -86,11 +124,91 @@ public class ClockView extends View {
         paintKd30Text.setStrokeCap(Paint.Cap.ROUND); //笔尖圆角
         paintKd30Text.setShadowLayer(4, 2, 4, Color.argb(60, 90, 90, 90)); //阴影
 
+        paintKdSecond = new Paint();
+        paintKdSecond.setStrokeWidth(6);
+        paintKdSecond.setColor(Color.rgb(75, 75, 75));
+        paintKdSecond.setAntiAlias(true);
+        paintKdSecond.setDither(true);
+        paintKdSecond.setStrokeCap(Paint.Cap.ROUND);
+        paintKdSecond.setShadowLayer(4, 5, 10, Color.argb(50, 80, 80, 80));
+
+        paintHour = new Paint();
+        paintHour.setStrokeWidth(30);
+        paintHour.setColor(Color.rgb(75, 75, 75));
+        paintHour.setAntiAlias(true);
+        paintHour.setDither(true);
+        paintHour.setStrokeCap(Paint.Cap.ROUND);
+        paintHour.setShadowLayer(4, 5, 10, Color.argb(50, 80, 80, 80));
+
+        paintCircleBar = new Paint();
+        paintCircleBar.setStrokeWidth(6);
+//        paintCircleBar.setColor(Color.rgb(178,34,34));
+        paintCircleBar.setAntiAlias(true);
+        paintCircleBar.setDither(true);
+        paintCircleBar.setStrokeCap(Paint.Cap.ROUND);
+//        paintCircleBar.setShadowLayer(4,5,10,Color.argb(100,80,80,80));
+
+        paintMinute = new Paint();
+        paintMinute.setStrokeWidth(30);
+        paintMinute.setColor(Color.rgb(75, 75, 75));
+        paintMinute.setAntiAlias(true);
+        paintMinute.setDither(true);
+        paintMinute.setStrokeCap(Paint.Cap.ROUND);
+        paintMinute.setShadowLayer(4, 5, 10, Color.rgb(80, 80, 80));
+
+        paintSecond = new Paint();
+        paintSecond.setStrokeWidth(6);
+        paintSecond.setColor(Color.rgb(180, 30, 30));
+        paintSecond.setAntiAlias(true);
+        paintSecond.setDither(true);
+        paintSecond.setStrokeCap(Paint.Cap.ROUND);
+        paintSecond.setShadowLayer(4, 2, 10, Color.argb(100, 90, 90, 90));
     }
 
     private void initTime() {
+        mCalendar = Calendar.getInstance();
+        cuurHour = mCalendar.get(Calendar.HOUR_OF_DAY);
+        cuurMinute = mCalendar.get(Calendar.MINUTE);
+        cuurSecond = mCalendar.get(Calendar.SECOND);
+        if (cuurHour >= 12) {
+            cuurHour = cuurHour - 12;
+            isMorning = false;
+        } else {
+            isMorning = true;
+        }
+        angleSecond = cuurSecond * 6f;
+        angleMinute = cuurMinute * 6f;
+        angleHour = cuurHour * 6f * 5f;
     }
 
+    /**
+     * 停止绘制
+     */
+    public void stopDrawing() {
+        drawable = false;
+    }
+
+    /**
+     * 更新时分秒针的角度,开始绘制
+     */
+    public void startRun() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (drawable) {
+                    try {
+                        Thread.sleep(1000); // 睡1s
+                        updateAngleSecond(); //更新秒针角度
+                        updateAngleMinute(); //更新分针角度
+                        updateAngleHour(); //更新时针角度
+                        postInvalidate(); //重新绘制
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
 
     /**
      * 更新时针角度
@@ -109,6 +227,28 @@ public class ClockView extends View {
     }
 
     private void updateAngleSecond() {
+        //更新秒针角度
+        angleSecond = angleSecond + 6;
+        cuurSecond += 1;
+        if (angleSecond >= 360){
+            angleSecond = 0;
+            cuurSecond = 0;
+            cuurMinute += 1;
+            //一分钟同步一次本地时间
+            mCalendar = Calendar.getInstance();
+            cuurHour = mCalendar.get(Calendar.HOUR_OF_DAY);
+            cuurMinute = mCalendar.get(Calendar.MINUTE);
+            cuurSecond = mCalendar.get(Calendar.SECOND);
+            if (cuurHour >= 12){
+                cuurHour = cuurHour - 12;
+                isMorning = false;
+            }else{
+                isMorning = true;
+            }
+            angleSecond = cuurSecond * 6f;
+            angleMinute = cuurMinute * 6f;
+            angleHour = cuurHour * 6f * 5f;
+        }
     }
 
     /**
@@ -119,7 +259,7 @@ public class ClockView extends View {
      * @param angle     角度
      * @return 返回路径坐标集合
      */
-    private float[] getDetailTime(int x, int y, int outRadius, int inRadius, int angle) {
+    private float[] getDetailPaths(int x, int y, int outRadius, int inRadius, int angle) {
         float[] paths = new float[4];
         paths[0] = (float) (x + outRadius * Math.cos(angle * Math.PI / 180));
         paths[1] = (float) (y + outRadius * Math.sin(angle * Math.PI / 180));
